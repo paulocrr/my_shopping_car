@@ -33,6 +33,18 @@ class AuthBloc extends HydratedCubit<AuthState> {
     });
   }
 
+  void signOutWithGoogle() async {
+    _emitLoading();
+
+    final either = await authService.googleLogOut();
+
+    either.fold((f) {
+      emit(AuthState(failure: Some(f)));
+    }, (r) {
+      emit(const AuthState());
+    });
+  }
+
   void _emitLoading() =>
       emit(state.copyWith(isLoading: true, failure: const None()));
 
@@ -87,7 +99,9 @@ class AuthState extends BaseState {
         _keyUser: user?.toMap(),
       };
 
-  factory AuthState.fromMap(Map<String, dynamic> map) => AuthState(
-        user: User.fromMap(map[_keyUser]),
-      );
+  factory AuthState.fromMap(Map<String, dynamic> map) {
+    return AuthState(
+      user: map[_keyUser] != null ? User.fromMap(map[_keyUser]) : null,
+    );
+  }
 }

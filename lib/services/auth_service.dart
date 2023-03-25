@@ -6,6 +6,7 @@ import 'package:my_shopping_car/extensions/firebase_auth_extensions.dart';
 import 'package:my_shopping_car/failures/failure.dart';
 import 'package:my_shopping_car/failures/firebase_store_failure.dart';
 import 'package:my_shopping_car/failures/google_sign_in_failure.dart';
+import 'package:my_shopping_car/failures/google_sign_out_failure.dart';
 import 'package:my_shopping_car/models/user.dart';
 
 class AuthService {
@@ -60,5 +61,17 @@ class AuthService {
     return firebaseAuth
         .authStateChanges()
         .map((firebaseUser) => firebaseUser?.toUser);
+  }
+
+  Future<Either<Failure, void>> googleLogOut() async {
+    try {
+      await firebaseAuth.signOut();
+      await googleSignIn.disconnect();
+      await googleSignIn.signOut();
+
+      return const Right(null);
+    } catch (e) {
+      return Left(GoogleSignOutFailure());
+    }
   }
 }

@@ -8,6 +8,8 @@ import 'package:my_shopping_car/firebase_options.dart';
 import 'package:my_shopping_car/ui/navigation/shopping_routes.dart';
 import 'package:my_shopping_car/ui/screens/home_screen.dart';
 import 'package:my_shopping_car/ui/screens/login_screen.dart';
+import 'package:my_shopping_car/utilities/go_router_refresh_stream.dart';
+import 'package:my_shopping_car/utilities/my_bloc_observer.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() async {
@@ -18,6 +20,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  Bloc.observer = MyBlocObserver();
   runApp(
     MultiBlocProvider(
       providers: [
@@ -55,6 +59,7 @@ class _MyAppState extends State<MyApp> {
           builder: (_, __) => const HomeScreen(),
         ),
       ],
+      refreshListenable: GoRouterRefreshStream(authBloc.stream),
       redirect: (context, state) {
         if (!authBloc.state.isAuthenticated) {
           return ShoppingRoutes.login;
