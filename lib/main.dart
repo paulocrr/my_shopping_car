@@ -1,18 +1,31 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:my_shopping_car/blocs/auth_bloc.dart';
 import 'package:my_shopping_car/firebase_options.dart';
 import 'package:my_shopping_car/ui/navigation/shopping_routes.dart';
 import 'package:my_shopping_car/ui/screens/home_screen.dart';
 import 'package:my_shopping_car/ui/screens/login_screen.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  HydratedBloc.storage = await HydratedStorage.build(
+      storageDirectory: await getApplicationSupportDirectory());
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>(create: (_) => AuthBloc()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -29,6 +42,8 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
+    final authBloc = context.read<AuthBloc>();
+
     router = GoRouter(
       routes: [
         GoRoute(
@@ -41,7 +56,11 @@ class _MyAppState extends State<MyApp> {
         ),
       ],
       redirect: (context, state) {
-        return ShoppingRoutes.login;
+        if (!authBloc.state.isAuthenticated) {
+          return ShoppingRoutes.login;
+        } else {
+          return ShoppingRoutes.home;
+        }
       },
     );
   }
